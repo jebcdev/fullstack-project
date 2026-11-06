@@ -87,6 +87,9 @@ Ubicadas en `test/app.e2e-spec.ts` y ejecutadas mediante `test/jest-e2e.json` co
   - `PATCH /api/v1/profile` (sin password actual) → `400 Bad Request`
   - `PATCH /api/v1/profile` (password actual errónea) → `401 Unauthorized`
   - `PATCH /api/v1/profile` (password actual válida) → `200 OK` y verificación de inicio de sesión con nueva clave.
+- **Módulo Seeder**:
+  - `POST /api/v1/seed` → `200 OK`, elimina datos existentes y siembra usuarios (`admin@email.com`, `user@email.com`, `guest@email.com`).
+  - Verificación de login exitoso para cada usuario sembrado con `SEED_USERS_PASSWORD`.
 
 ---
 

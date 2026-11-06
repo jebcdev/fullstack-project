@@ -3,6 +3,11 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { join } from "path";
 import { ConfigModule } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { ProfileModule } from './profile/profile.module';
+import { PublicModule } from './public/public.module';
+import { PrivateModule } from './private/private.module';
 
 @Module({
   imports: [
@@ -23,6 +28,11 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       synchronize: true,
       logging: true,
     }),
+    UsersModule,
+    AuthModule,
+    ProfileModule,
+    PublicModule,
+    PrivateModule,
   ],
 })
 export class AppModule {}

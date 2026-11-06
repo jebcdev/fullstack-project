@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const logger: Logger = new Logger('----- Bootstrap -----');
@@ -12,7 +13,8 @@ async function bootstrap() {
   const API_PREFIX: string =
     configService.get<string>('API_PREFIX') || 'api/v1';
 
-  app.setGlobalPrefix(API_PREFIX);
+  const cleanPrefix = API_PREFIX.replace(/^\/+/, '');
+  app.setGlobalPrefix(cleanPrefix);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -31,9 +33,39 @@ async function bootstrap() {
     credentials: true,
   });
 
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('API de Autenticación y Autorización por Roles')
+    .setDescription(
+      'Documentación completa e interactiva de la API con NestJS, TypeORM, PostgreSQL y JWT. Provee control de acceso basado en roles (ADMIN, USER, GUEST).',
+    )
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description:
+          'Ingrese el token JWT con formato: Bearer <token> para acceder a los endpoints protegidos',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .build();
+
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup(`${cleanPrefix}/docs`, app, swaggerDocument, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
+
   await app.listen(PORT);
   logger.log(
-    `Application is running on: http://localhost:${PORT}${API_PREFIX}`,
+    `Application is running on: http://localhost:${PORT}/${cleanPrefix}`,
+  );
+  logger.log(
+    `Swagger documentation available at: http://localhost:${PORT}/${cleanPrefix}/docs`,
   );
   logger.log(
     `Environment: ${configService.get<string>('NODE_ENV') || 'development'}`,

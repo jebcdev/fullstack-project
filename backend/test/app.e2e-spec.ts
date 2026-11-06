@@ -424,4 +424,60 @@ describe('App & RBAC End-to-End Tests (e2e)', () => {
       expect(newLogin.body.accessToken).toBeDefined();
     });
   });
+
+  describe('8. Módulo Seeder (POST /api/v1/seed)', () => {
+    const SEED_PASSWORD = process.env.SEED_USERS_PASSWORD || 'TestSeedPassword123!';
+
+    beforeAll(() => {
+      process.env.SEED_USERS_PASSWORD = SEED_PASSWORD;
+    });
+
+    it('POST /seed → 200 OK reinicia la base de datos y siembra admin, user y guest', async () => {
+      // Caso 1: Ejecución del seed
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/seed')
+        .expect(200);
+
+      expect(response.body.count).toBe(3);
+      expect(response.body.users).toHaveLength(3);
+
+      const roles = response.body.users.map((u: any) => u.role);
+      expect(roles).toContain(UserRole.ADMIN);
+      expect(roles).toContain(UserRole.USER);
+      expect(roles).toContain(UserRole.GUEST);
+
+      const emails = response.body.users.map((u: any) => u.email);
+      expect(emails).toContain('admin@email.com');
+      expect(emails).toContain('user@email.com');
+      expect(emails).toContain('guest@email.com');
+
+      // Verifica que no exponga contraseñas
+      for (const u of response.body.users) {
+        expect(u.password).toBeUndefined();
+      }
+    });
+
+    it('Todos los usuarios sembrados pueden autenticarse con SEED_USERS_PASSWORD', async () => {
+      // Caso 2: Login con cada usuario sembrado usando la clave única SEED_USERS_PASSWORD
+      const seededAccounts = [
+        { email: 'admin@email.com', role: UserRole.ADMIN },
+        { email: 'user@email.com', role: UserRole.USER },
+        { email: 'guest@email.com', role: UserRole.GUEST },
+      ];
+
+      for (const account of seededAccounts) {
+        const loginRes = await request(app.getHttpServer())
+          .post('/api/v1/auth/login')
+          .send({
+            email: account.email,
+            password: SEED_PASSWORD,
+          })
+          .expect(200);
+
+        expect(loginRes.body.accessToken).toBeDefined();
+        expect(loginRes.body.user.email).toBe(account.email);
+        expect(loginRes.body.user.role).toBe(account.role);
+      }
+    });
+  });
 });

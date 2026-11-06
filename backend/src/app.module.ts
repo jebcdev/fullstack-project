@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProfileModule } from './profile/profile.module';
 import { PublicModule } from './public/public.module';
 import { PrivateModule } from './private/private.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { PrivateModule } from './private/private.module';
     ProfileModule,
     PublicModule,
     PrivateModule,
+    SeedModule,
   ],
 })
 export class AppModule {}
